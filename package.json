@@ -2,13 +2,17 @@
   "name": "seaverse-ai-search-prototype",
   "version": "1.0.0",
   "description": "SeaVerse AI 搜索原型 - 智能技能匹配系统",
-  "main": "server.js",
   "scripts": {
-    "start": "node server.js",
-    "dev": "node server.js"
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "server": "node server.js"
   },
   "dependencies": {
     "express": "^4.18.2"
+  },
+  "devDependencies": {
+    "vite": "^7.2.2"
   },
   "engines": {
     "node": ">=14.0.0"

@@ -1,0 +1,1098 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <script type="module" src="/@vite/client"></script>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SeaVerse AI 搜索原型</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            min-height: 100vh;
+            color: #fff;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding-top: 20px;
+        }
+
+        .header h1 {
+            font-size: 32px;
+            margin-bottom: 10px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .header p {
+            color: #a0a0a0;
+            font-size: 14px;
+        }
+
+        .main-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            padding: 30px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            margin-bottom: 20px;
+        }
+
+        .input-section h2 {
+            font-size: 18px;
+            margin-bottom: 15px;
+            color: #e0e0e0;
+        }
+
+        .input-wrapper {
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        #userInput {
+            width: 100%;
+            padding: 15px 20px;
+            font-size: 16px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            color: #fff;
+            outline: none;
+            transition: all 0.3s;
+        }
+
+        #userInput:focus {
+            border-color: #667eea;
+            background: rgba(255, 255, 255, 0.12);
+        }
+
+        #userInput::placeholder {
+            color: #777;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 12px 30px;
+            font-size: 16px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 600;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            flex: 1;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            padding: 12px 20px;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .history-section {
+            margin-top: 30px;
+        }
+
+        .history-section h3 {
+            font-size: 16px;
+            color: #a0a0a0;
+            margin-bottom: 15px;
+        }
+
+        .history-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .history-item {
+            padding: 12px 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 14px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .history-item .status {
+            font-size: 18px;
+        }
+
+        .result-section {
+            display: none;
+        }
+
+        .result-section.active {
+            display: block;
+        }
+
+        .thinking-box {
+            padding: 20px;
+            background: rgba(102, 126, 234, 0.1);
+            border-radius: 12px;
+            border: 1px solid rgba(102, 126, 234, 0.3);
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .thinking-box .spinner {
+            width: 40px;
+            height: 40px;
+            margin: 0 auto 15px;
+            border: 3px solid rgba(102, 126, 234, 0.3);
+            border-top-color: #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .decision-panel {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .decision-panel h3 {
+            font-size: 18px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .decision-section {
+            margin-bottom: 20px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .decision-section:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+
+        .decision-section h4 {
+            font-size: 14px;
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .decision-section p {
+            color: #c0c0c0;
+            line-height: 1.6;
+            font-size: 14px;
+        }
+
+        .skill-tag {
+            display: inline-block;
+            padding: 4px 12px;
+            background: rgba(102, 126, 234, 0.2);
+            border-radius: 6px;
+            font-size: 13px;
+            margin: 5px 5px 5px 0;
+        }
+
+        .result-image {
+            width: 100%;
+            height: 400px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 20px 0;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .result-image-placeholder {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .feedback-section {
+            margin-top: 20px;
+        }
+
+        .feedback-section h4 {
+            font-size: 16px;
+            margin-bottom: 15px;
+        }
+
+        .feedback-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-feedback {
+            flex: 1;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            color: white;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .btn-feedback:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: #667eea;
+        }
+
+        .discover-section {
+            margin-top: 20px;
+        }
+
+        .discover-title {
+            font-size: 18px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .discover-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .discover-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .discover-card:hover {
+            transform: translateY(-5px);
+            border-color: #667eea;
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .discover-card-image {
+            width: 100%;
+            height: 120px;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.3), rgba(118, 75, 162, 0.3));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+        }
+
+        .discover-card-content {
+            padding: 15px;
+        }
+
+        .discover-card-title {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: #fff;
+        }
+
+        .discover-card-desc {
+            font-size: 12px;
+            color: #999;
+            line-height: 1.4;
+        }
+
+        .toggle-details {
+            color: #667eea;
+            cursor: pointer;
+            font-size: 14px;
+            margin-top: 10px;
+            display: inline-block;
+        }
+
+        .toggle-details:hover {
+            text-decoration: underline;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .multi-skill-result {
+            display: grid;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .skill-result-item {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 12px;
+            padding: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .skill-result-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .skill-result-header h4 {
+            font-size: 16px;
+            color: #667eea;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 0 10px;
+            }
+
+            .main-card {
+                padding: 20px;
+            }
+
+            .discover-cards {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🌊 SeaVerse AI 搜索原型</h1>
+            <p>基于用户历史的智能技能匹配系统</p>
+        </div>
+
+        <div class="main-card">
+            <div class="input-section">
+                <h2>💬 告诉我你想做什么</h2>
+                <div class="input-wrapper">
+                    <input type="text" id="userInput" placeholder="例如：画一只可爱的猫咪、生成产品介绍视频、制作音乐..." />
+                </div>
+                <div class="button-group">
+                    <button class="btn btn-primary" onclick="generateContent()">🚀 开始生成（模拟）</button>
+                    <button class="btn btn-primary" onclick="realGenerateWithAssistant()" style="background: linear-gradient(135deg, #51cf66, #37b24d);">✨ 真实生成（调用 AI）</button>
+                    <button class="btn btn-secondary" onclick="clearHistory()">🗑️ 清空历史</button>
+                </div>
+            </div>
+
+            <div class="history-section">
+                <h3>📜 历史记录 (<span id="historyCount">0</span> 次)</h3>
+                <div class="history-list" id="historyList">
+                    <div style="color: #666; font-size: 14px; text-align: center; padding: 20px;">
+                        暂无历史记录
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="main-card result-section" id="resultSection">
+            <div class="thinking-box" id="thinkingBox">
+                <div class="spinner"></div>
+                <p>🤖 AI 正在为你生成...</p>
+                <p style="font-size: 12px; color: #999; margin-top: 5px;">预计 <span id="estimatedTime">10</span> 秒完成</p>
+                <p class="toggle-details" onclick="toggleDetails()">🔍 查看详情</p>
+            </div>
+
+            <div class="decision-panel hidden" id="decisionPanel">
+                <h3>🔍 AI 决策过程</h3>
+                <div id="decisionContent"></div>
+            </div>
+
+            <div class="hidden" id="resultContent">
+                <div id="multiSkillResults" class="multi-skill-result"></div>
+
+                <div class="feedback-section">
+                    <h4>💬 结果满意吗？</h4>
+                    <div class="feedback-buttons">
+                        <button class="btn-feedback" onclick="giveFeedback('satisfied')">😊 很满意</button>
+                        <button class="btn-feedback" onclick="giveFeedback('retry')">😐 换一个</button>
+                        <button class="btn-feedback" onclick="giveFeedback('adjust')">🔧 我要调整</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="main-card discover-section hidden" id="discoverSection">
+            <div class="discover-title">
+                <span>✨</span>
+                <span>Discover more</span>
+            </div>
+            <p style="color: #999; font-size: 14px; margin-bottom: 15px;" id="discoverMessage"></p>
+            <div class="discover-cards" id="discoverCards"></div>
+        </div>
+    </div>
+
+    <script>
+        const skills = [
+            {
+                id: "api_jimeng_4_0",
+                name: "即梦 4.0",
+                display_name: "Image - Jimeng 4.0",
+                type: "image",
+                tags: ["image", "cute", "chinese", "fast"],
+                bestFor: "可爱风格、中文理解、快速生成",
+                promptStyle: "详细中文描述 + 风格关键词",
+                example: "一只可爱的橘色小猫咪，毛茸茸的，大眼睛..."
+            },
+            {
+                id: "api_midjourney_v6",
+                name: "Midjourney v6",
+                display_name: "Image - Midjourney v6",
+                type: "image",
+                tags: ["image", "professional", "realistic", "quality"],
+                bestFor: "写实风格、专业摄影、最高质量",
+                promptStyle: "英文专业术语 + 摄影参数",
+                example: "professional cat portrait, studio lighting..."
+            },
+            {
+                id: "api_kling_v2_6",
+                name: "Kling v2.6",
+                display_name: "Video - Kling v2.6",
+                type: "video",
+                tags: ["video", "audio", "professional", "sync"],
+                bestFor: "音视频同步、专业级质量、产品介绍",
+                promptStyle: "详细场景描述 + 运镜要求",
+                example: "产品在阳光下展示，慢镜头特写..."
+            },
+            {
+                id: "api_wanx25_t2v",
+                name: "Wanx 2.5",
+                display_name: "Video - Wanx 2.5",
+                type: "video",
+                tags: ["video", "fast", "economical"],
+                bestFor: "快速生成、性价比高、概念验证",
+                promptStyle: "简洁场景描述",
+                example: "一只猫在花园里玩耍"
+            },
+            {
+                id: "api_mureka_song",
+                name: "Mureka Song",
+                display_name: "Audio - Mureka Song",
+                type: "audio",
+                tags: ["audio", "music", "song"],
+                bestFor: "完整歌曲生成、多种风格",
+                promptStyle: "风格 + 情感 + 主题",
+                example: "轻快的流行歌曲，关于夏天"
+            }
+        ];
+
+        let userHistory = [];
+        let currentSession = null;
+
+        function init() {
+            loadHistory();
+            updateHistoryDisplay();
+        }
+
+        async function generateContent() {
+            const input = document.getElementById('userInput').value.trim();
+            if (!input) {
+                alert('请输入你的需求');
+                return;
+            }
+
+            document.getElementById('resultSection').classList.add('active');
+            document.getElementById('thinkingBox').classList.remove('hidden');
+            document.getElementById('decisionPanel').classList.add('hidden');
+            document.getElementById('resultContent').classList.add('hidden');
+
+            document.getElementById('resultSection').scrollIntoView({ behavior: 'smooth' });
+
+            // AI 决策
+            const decision = aiDecision(input, userHistory);
+            displayDecision(decision);
+
+            // 模拟思考动画
+            await simulateThinking();
+
+            // 显示模拟结果
+            displayResult(decision);
+            saveToHistory(input, decision);
+            checkDiscoverRecommendation();
+        }
+
+        function simulateThinkingAnimation() {
+            let time = 10;
+            const timer = setInterval(() => {
+                time--;
+                document.getElementById('estimatedTime').textContent = time;
+                if (time <= 0) {
+                    clearInterval(timer);
+                }
+            }, 500);
+        }
+
+        async function realGeneration(decision) {
+            const results = [];
+
+            for (const skill of decision.skills) {
+                const prompt = decision.optimizedPrompts[decision.skills.indexOf(skill)];
+
+                if (skill.type === 'image') {
+                    // 调用图像生成
+                    const result = await callImageSkill(skill.id, prompt);
+                    results.push(result);
+                } else if (skill.type === 'video') {
+                    // 调用视频生成
+                    const result = await callVideoSkill(skill.id, prompt);
+                    results.push(result);
+                } else if (skill.type === 'audio') {
+                    // 调用音频生成
+                    const result = await callAudioSkill(skill.id, prompt);
+                    results.push(result);
+                }
+            }
+
+            return results;
+        }
+
+        async function callImageSkill(skillId, prompt) {
+            // 使用 Skill 调用图像生成
+            const response = await fetch('/api/generate-image', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    skillId: skillId,
+                    prompt: prompt
+                })
+            });
+
+            if (!response.ok) throw new Error('图像生成失败');
+            return await response.json();
+        }
+
+        async function callVideoSkill(skillId, prompt) {
+            const response = await fetch('/api/generate-video', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    skillId: skillId,
+                    prompt: prompt
+                })
+            });
+
+            if (!response.ok) throw new Error('视频生成失败');
+            return await response.json();
+        }
+
+        async function callAudioSkill(skillId, prompt) {
+            const response = await fetch('/api/generate-audio', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    skillId: skillId,
+                    prompt: prompt
+                })
+            });
+
+            if (!response.ok) throw new Error('音频生成失败');
+            return await response.json();
+        }
+
+        function displayRealResult(decision, results) {
+            document.getElementById('thinkingBox').classList.add('hidden');
+            document.getElementById('resultContent').classList.remove('hidden');
+
+            const multiResults = decision.skills.map((skill, index) => {
+                const result = results[index];
+                let mediaHtml = '';
+
+                if (skill.type === 'image' && result.imageUrl) {
+                    mediaHtml = `<img src="${result.imageUrl}" style="width: 100%; border-radius: 12px;" />`;
+                } else if (skill.type === 'video' && result.videoUrl) {
+                    mediaHtml = `<video src="${result.videoUrl}" controls style="width: 100%; border-radius: 12px;"></video>`;
+                } else if (skill.type === 'audio' && result.audioUrl) {
+                    mediaHtml = `<audio src="${result.audioUrl}" controls style="width: 100%;"></audio>`;
+                } else {
+                    mediaHtml = '<div class="result-image-placeholder">生成中...</div>';
+                }
+
+                return `
+                    <div class="skill-result-item">
+                        <div class="skill-result-header">
+                            <h4>🎨 ${skill.display_name}</h4>
+                            <span style="color: #51cf66; font-size: 12px;">✅ 生成成功</span>
+                        </div>
+                        <div style="margin: 20px 0;">
+                            ${mediaHtml}
+                        </div>
+                        <p style="font-size: 13px; color: #999;">使用的 Prompt: ${decision.optimizedPrompts[index]}</p>
+                    </div>
+                `;
+            }).join('');
+
+            document.getElementById('multiSkillResults').innerHTML = multiResults;
+        }
+
+        function simulateThinking() {
+            return new Promise(resolve => {
+                let time = 10;
+                const timer = setInterval(() => {
+                    time--;
+                    document.getElementById('estimatedTime').textContent = time;
+                    if (time <= 0) {
+                        clearInterval(timer);
+                        resolve();
+                    }
+                }, 200);
+            });
+        }
+
+        function simulateGeneration(skillCount) {
+            return new Promise(resolve => {
+                setTimeout(resolve, 1000 * skillCount);
+            });
+        }
+
+        function aiDecision(input, history) {
+            const lowerInput = input.toLowerCase();
+            const preference = analyzePreference(history);
+
+            let selectedSkills = [];
+            let reason = "";
+
+            if (lowerInput.includes('介绍视频') || lowerInput.includes('宣传片') || (lowerInput.includes('视频') && lowerInput.includes('音乐'))) {
+                selectedSkills = [
+                    skills.find(s => s.id === 'api_kling_v2_6'),
+                    skills.find(s => s.id === 'api_mureka_song')
+                ];
+                reason = "检测到你需要完整的视频制作流程，我为你组合了视频生成和音乐创作两个技能";
+            }
+            else if (lowerInput.includes('画') || lowerInput.includes('图') || lowerInput.includes('照片') || lowerInput.includes('猫') || lowerInput.includes('狗')) {
+                if (preference.style === 'cute') {
+                    selectedSkills = [skills.find(s => s.id === 'api_jimeng_4_0')];
+                    reason = `基于你的历史偏好（${preference.cuteCount}次可爱风格），选择即梦 4.0`;
+                } else if (preference.style === 'professional') {
+                    selectedSkills = [skills.find(s => s.id === 'api_midjourney_v6')];
+                    reason = `基于你的历史偏好（${preference.professionalCount}次专业风格），选择 Midjourney v6`;
+                } else {
+                    selectedSkills = [skills.find(s => s.id === 'api_jimeng_4_0')];
+                    reason = "首次使用，推荐中文友好的即梦 4.0";
+                }
+            }
+            else if (lowerInput.includes('视频')) {
+                selectedSkills = [skills.find(s => s.id === 'api_kling_v2_6')];
+                reason = "专业视频生成需求，选择 Kling v2.6";
+            }
+            else if (lowerInput.includes('音乐') || lowerInput.includes('歌')) {
+                selectedSkills = [skills.find(s => s.id === 'api_mureka_song')];
+                reason = "音乐创作需求，选择 Mureka Song";
+            }
+            else {
+                selectedSkills = [skills.find(s => s.id === 'api_jimeng_4_0')];
+                reason = "通用需求，选择即梦 4.0";
+            }
+
+            const optimizedPrompts = selectedSkills.map(skill => optimizePrompt(input, skill, preference));
+
+            return {
+                input: input,
+                understanding: analyzeIntent(input, preference),
+                skills: selectedSkills,
+                reason: reason,
+                optimizedPrompts: optimizedPrompts,
+                params: inferParams(preference)
+            };
+        }
+
+        function analyzePreference(history) {
+            if (history.length === 0) {
+                return { style: 'unknown', cuteCount: 0, professionalCount: 0 };
+            }
+
+            let cuteCount = 0;
+            let professionalCount = 0;
+
+            history.forEach(item => {
+                if (item.style === 'cute') cuteCount++;
+                if (item.style === 'professional') professionalCount++;
+            });
+
+            return {
+                style: cuteCount > professionalCount ? 'cute' : (professionalCount > 0 ? 'professional' : 'unknown'),
+                cuteCount: cuteCount,
+                professionalCount: professionalCount
+            };
+        }
+
+        function analyzeIntent(input, preference) {
+            const lowerInput = input.toLowerCase();
+            let intent = "生成内容";
+
+            if (lowerInput.includes('画') || lowerInput.includes('图')) {
+                intent = "生成图像";
+            } else if (lowerInput.includes('视频')) {
+                intent = "生成视频";
+            } else if (lowerInput.includes('音乐') || lowerInput.includes('歌')) {
+                intent = "生成音乐";
+            }
+
+            let styleGuess = "风格未知";
+            if (preference.style === 'cute') {
+                styleGuess = `可爱风格（基于你之前${preference.cuteCount}次偏好）`;
+            } else if (preference.style === 'professional') {
+                styleGuess = `专业风格（基于你之前${preference.professionalCount}次偏好）`;
+            } else if (lowerInput.includes('可爱') || lowerInput.includes('萌')) {
+                styleGuess = "可爱风格";
+            } else if (lowerInput.includes('专业') || lowerInput.includes('商业')) {
+                styleGuess = "专业风格";
+            }
+
+            return `${intent}，${styleGuess}`;
+        }
+
+        function optimizePrompt(input, skill, preference) {
+            if (skill.type === 'image') {
+                if (skill.id === 'api_jimeng_4_0') {
+                    return `${input}，毛茸茸的，大眼睛，温暖的光线，高清细节，治愈系插画风格`;
+                } else if (skill.id === 'api_midjourney_v6') {
+                    return `professional ${input}, studio lighting, high quality, 8k resolution, commercial photography`;
+                }
+            } else if (skill.type === 'video') {
+                return `${input}，镜头平稳移动，自然光线，高清画质`;
+            } else if (skill.type === 'audio') {
+                return `${input}，流行风格，轻快节奏`;
+            }
+            return input;
+        }
+
+        function inferParams(preference) {
+            return {
+                resolution: "1024x1024",
+                duration: "10秒",
+                quality: "high"
+            };
+        }
+
+        function displayDecision(decision) {
+            const content = `
+                <div class="decision-section">
+                    <h4>📊 我的理解</h4>
+                    <p>${decision.understanding}</p>
+                </div>
+
+                <div class="decision-section">
+                    <h4>🎯 技能选择 (${decision.skills.length}个)</h4>
+                    <p style="margin-bottom: 10px;">${decision.reason}</p>
+                    ${decision.skills.map((skill, index) => `
+                        <div style="margin: 10px 0;">
+                            <span class="skill-tag">✅ ${skill.display_name}</span>
+                            <p style="margin-top: 5px; font-size: 13px;">适用于：${skill.bestFor}</p>
+                        </div>
+                    `).join('')}
+                </div>
+
+                <div class="decision-section">
+                    <h4>✍️ Prompt 优化</h4>
+                    ${decision.skills.map((skill, index) => `
+                        <div style="margin: 15px 0;">
+                            <p style="color: #999; font-size: 13px; margin-bottom: 5px;">${skill.display_name}:</p>
+                            <p style="color: #ff6b6b;">原始输入："${decision.input}"</p>
+                            <p style="color: #51cf66; margin-top: 5px;">优化后："${decision.optimizedPrompts[index]}"</p>
+                        </div>
+                    `).join('')}
+                </div>
+
+                <div class="decision-section">
+                    <h4>⚙️ 参数推断</h4>
+                    <p>• 分辨率：${decision.params.resolution}</p>
+                    <p>• 时长：${decision.params.duration}</p>
+                    <p>• 质量：${decision.params.quality}</p>
+                </div>
+            `;
+
+            document.getElementById('decisionContent').innerHTML = content;
+        }
+
+        function displayResult(decision) {
+            document.getElementById('thinkingBox').classList.add('hidden');
+            document.getElementById('resultContent').classList.remove('hidden');
+
+            const multiResults = decision.skills.map((skill, index) => {
+                return `
+                    <div class="skill-result-item">
+                        <div class="skill-result-header">
+                            <h4>🎨 ${skill.display_name}</h4>
+                            <span style="color: #51cf66; font-size: 12px;">✅ 生成成功</span>
+                        </div>
+                        <div class="result-image">
+                            <div class="result-image-placeholder">
+                                [${skill.type === 'image' ? '图像' : skill.type === 'video' ? '视频' : '音频'}生成结果占位]
+                            </div>
+                        </div>
+                        <p style="font-size: 13px; color: #999;">使用的 Prompt: ${decision.optimizedPrompts[index]}</p>
+                    </div>
+                `;
+            }).join('');
+
+            document.getElementById('multiSkillResults').innerHTML = multiResults;
+        }
+
+        function saveToHistory(input, decision) {
+            const historyItem = {
+                input: input,
+                skills: decision.skills.map(s => s.id),
+                style: decision.understanding.includes('可爱') ? 'cute' : 'professional',
+                satisfied: true,
+                timestamp: new Date().toISOString()
+            };
+
+            userHistory.push(historyItem);
+            if (userHistory.length > 10) {
+                userHistory.shift();
+            }
+
+            localStorage.setItem('seaverse_history', JSON.stringify(userHistory));
+            updateHistoryDisplay();
+        }
+
+        function updateHistoryDisplay() {
+            const list = document.getElementById('historyList');
+            const count = document.getElementById('historyCount');
+
+            count.textContent = userHistory.length;
+
+            if (userHistory.length === 0) {
+                list.innerHTML = '<div style="color: #666; font-size: 14px; text-align: center; padding: 20px;">暂无历史记录</div>';
+                return;
+            }
+
+            const html = userHistory.slice().reverse().map(item => `
+                <div class="history-item">
+                    <span class="status">${item.satisfied ? '✅' : '❌'}</span>
+                    <span>${item.input}</span>
+                    <span style="margin-left: auto; font-size: 12px; color: #666;">${item.style === 'cute' ? '可爱风格' : '专业风格'}</span>
+                </div>
+            `).join('');
+
+            list.innerHTML = html;
+        }
+
+        function loadHistory() {
+            const saved = localStorage.getItem('seaverse_history');
+            if (saved) {
+                userHistory = JSON.parse(saved);
+            }
+        }
+
+        function clearHistory() {
+            if (confirm('确定要清空历史记录吗？')) {
+                userHistory = [];
+                localStorage.removeItem('seaverse_history');
+                updateHistoryDisplay();
+                document.getElementById('discoverSection').classList.add('hidden');
+            }
+        }
+
+        function toggleDetails() {
+            const panel = document.getElementById('decisionPanel');
+            panel.classList.toggle('hidden');
+        }
+
+        function giveFeedback(type) {
+            if (type === 'satisfied') {
+                alert('😊 太好了！已记录你的偏好，下次会更准确！');
+            } else if (type === 'retry') {
+                alert('😐 好的，让我重新生成一个...');
+            } else {
+                alert('🔧 高级调整功能开发中...');
+            }
+        }
+
+        function checkDiscoverRecommendation() {
+            if (userHistory.length >= 5) {
+                const pattern = detectPattern(userHistory);
+                if (pattern) {
+                    showDiscoverRecommendation(pattern);
+                }
+            }
+        }
+
+        function detectPattern(history) {
+            const recentTasks = history.slice(-5);
+            const cuteCount = recentTasks.filter(t => t.style === 'cute').length;
+
+            if (cuteCount >= 4) {
+                return {
+                    type: 'cute_animal',
+                    message: '你已经生成了多张可爱动物图片',
+                    suggestions: [
+                        { emoji: '🎨', title: '生成表情包', desc: '用同一风格生成多个表情' },
+                        { emoji: '📱', title: '制作手机壁纸', desc: '适配不同设备尺寸' },
+                        { emoji: '💾', title: '保存配置', desc: '下次一键生成' },
+                        { emoji: '🎬', title: '制作动画', desc: '将图片转为短视频' }
+                    ]
+                };
+            }
+
+            return null;
+        }
+
+        function showDiscoverRecommendation(pattern) {
+            document.getElementById('discoverSection').classList.remove('hidden');
+            document.getElementById('discoverMessage').textContent = pattern.message;
+
+            const cards = pattern.suggestions.map(sug => `
+                <div class="discover-card" onclick="handleDiscoverClick('${sug.title}')">
+                    <div class="discover-card-image">${sug.emoji}</div>
+                    <div class="discover-card-content">
+                        <div class="discover-card-title">${sug.title}</div>
+                        <div class="discover-card-desc">${sug.desc}</div>
+                    </div>
+                </div>
+            `).join('');
+
+            document.getElementById('discoverCards').innerHTML = cards;
+
+            setTimeout(() => {
+                document.getElementById('discoverSection').scrollIntoView({ behavior: 'smooth' });
+            }, 500);
+        }
+
+        function handleDiscoverClick(title) {
+            alert(`你选择了：${title}\n\n这个功能正在开发中...`);
+        }
+
+        // 真实生成 - 通过 AI Assistant
+        function realGenerateWithAssistant() {
+            const input = document.getElementById('userInput').value.trim();
+            if (!input) {
+                // 在页面显示提示
+                showTip('请输入你的需求');
+                return;
+            }
+
+            const message = `请帮我真实生成：${input}\n\n使用 SeaVerse 的 Skill 真实调用 API 生成内容，完成后告诉我结果。`;
+
+            // 在页面显示消息
+            showTip(`🎯 准备真实生成："${input}"\n\n请复制下方文字发送给我：\n\n${message}`, true);
+        }
+
+        function showTip(message, isLarge = false) {
+            // 创建提示框
+            const tip = document.createElement('div');
+            tip.style.cssText = `
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background: rgba(0, 0, 0, 0.95);
+                color: white;
+                padding: ${isLarge ? '30px' : '20px'};
+                border-radius: 12px;
+                z-index: 10000;
+                max-width: ${isLarge ? '600px' : '400px'};
+                white-space: pre-wrap;
+                box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+                border: 1px solid rgba(102, 126, 234, 0.5);
+            `;
+            tip.textContent = message;
+
+            // 添加关闭按钮
+            const closeBtn = document.createElement('button');
+            closeBtn.textContent = '关闭';
+            closeBtn.style.cssText = `
+                margin-top: 15px;
+                padding: 8px 20px;
+                background: #667eea;
+                color: white;
+                border: none;
+                border-radius: 6px;
+                cursor: pointer;
+                width: 100%;
+            `;
+            closeBtn.onclick = () => document.body.removeChild(tip);
+            tip.appendChild(closeBtn);
+
+            document.body.appendChild(tip);
+        }
+
+        init();
+
+        document.getElementById('userInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                generateContent();
+            }
+        });
+    </script>
+
+<!-- Element Selector Loader (Auto-injected by Vite) -->
+<script>
+(function() {
+  console.log('[ElementSelectorLoader] Initializing...');
+  let scriptInjected = false;
+  window.addEventListener('message', function(event) {
+    if (!event.data || event.data.type !== 'inject-element-selector-script') return;
+    if (scriptInjected) { console.log('[ElementSelectorLoader] Script already injected, skipping'); return; }
+    console.log('[ElementSelectorLoader] Received script injection request');
+    const script = event.data.script;
+    if (!script) { console.error('[ElementSelectorLoader] No script content received'); return; }
+    try {
+      const scriptElement = document.createElement('script');
+      scriptElement.id = 'element-selector-injected';
+      scriptElement.textContent = script;
+      const target = document.head || document.body;
+      if (target) {
+        target.appendChild(scriptElement);
+        scriptInjected = true;
+        console.log('[ElementSelectorLoader] Script injected and executed successfully');
+        if (window.parent) window.parent.postMessage({ type: 'element-selector-script-injected', success: true }, "*");
+      } else {
+        console.error('[ElementSelectorLoader] No head or body element found');
+      }
+    } catch (error) {
+      console.error('[ElementSelectorLoader] Failed to inject script:', error);
+      if (window.parent) window.parent.postMessage({ type: 'element-selector-script-injected', success: false, error: error.message }, "*");
+    }
+  });
+  if (window.parent && window.parent !== window) {
+    window.parent.postMessage({ type: 'element-selector-loader-ready' }, "*");
+    console.log('[ElementSelectorLoader] Ready and waiting for injection request');
+  }
+})();
+</script>
+</body>
+</html>
